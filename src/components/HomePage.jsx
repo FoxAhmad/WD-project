@@ -5,6 +5,7 @@ import Categories from './Categories';
 import ListingCard from './ListingCard';
 import Footer from './Footer';
 
+
 const Home = () => {
   const [listings, setListings] = useState([]);
 
