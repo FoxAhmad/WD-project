@@ -1,21 +1,23 @@
-import React from 'react';
-
+// src/components/Navbar.jsx
+import SearchBar from './SearchBar';
+import { FaUserCircle } from 'react-icons/fa';
 const Navbar = () => {
   return (
-    <nav className="bg-white shadow-lg">
-      <div className="container mx-auto px-4 py-2 flex justify-between items-center">
-        <div className="text-2xl font-bold text-red-600">Airbnb</div>
-        <ul className="flex space-x-4">
-          <li className="hover:text-red-600 cursor-pointer">Home</li>
-          <li className="hover:text-red-600 cursor-pointer">Experiences</li>
-          <li className="hover:text-red-600 cursor-pointer">Online Experiences</li>
-        </ul>
-        <div className="flex space-x-4 items-center">
-          <button className="bg-transparent text-sm font-semibold hover:text-red-600">Login</button>
-          <button className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-semibold">Signup</button>
+    <header className="flex flex-col space-y-4 p-4 border-b border-gray-200">
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <img src="./public/waterbnb.png" alt="Waterbnb Logo" className="h-8" /> Waterbnb
+        </div>
+        <div className="flex items-center space-x-4 text-gray-600">
+          <button className="text-sm">Waterbnb your home</button>
+          <div className="p-2 bg-gray-200 rounded-full">
+            <FaUserCircle size={24} className="text-gray-600" />
+          </div>
         </div>
       </div>
-    </nav>
+      {/* Include the SearchBar below the main navbar items */}
+      <SearchBar />
+    </header>
   );
 };
 

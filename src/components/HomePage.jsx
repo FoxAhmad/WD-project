@@ -1,55 +1,66 @@
-import React, { useEffect, useState } from 'react';
-import Navbar from './Navbar.jsx';
-import SearchBar from './SearchBar.jsx';
-import Categories from './Categories.jsx';
-import ListingCard from './ListingCard.jsx';
-import Footer from './Footer.jsx';
+// src/components/HomePage.jsx
+import Navbar from './Navbar';
+import Categories from './Categories';
+import ListingCard from './ListingCard';
 
+const listings = [
+  {
+    image: './demo.png',
+    title: 'Haunt the Beetlejuice house',
+    host: 'Delia Deetz',
+    status: 'Booking closed',
+  },
+  {
+    image: './demo.png',
+    title: "Stay in Prince's Purple Rain house",
+    host: 'Wendy and Lisa',
+    status: 'Sold out',
+  },
+  {
+    image: './demo.png',
+    title: "Stay in Prince's Purple Rain house",
+    host: 'Wendy and Lisa',
+    status: 'Sold out',
+  },
+  {
+    image: './demo.png',
+    title: "Stay in Prince's Purple Rain house",
+    host: 'Wendy and Lisa',
+    status: 'Sold out',
+  },
+  {
+    image: './demo.png',
+    title: "Stay in Prince's Purple Rain house",
+    host: 'Wendy and Lisa',
+    status: 'Sold out',
+  },
+  {
+    image: './demo.png',
+    title: "Stay in Prince's Purple Rain house",
+    host: 'Wendy and Lisa',
+    status: 'Sold out',
+  },
+  // Add more listings as needed
+];
 
-const Home = () => {
-  const [listings, setListings] = useState([]);
-
-  useEffect(() => {
-    // Fetch mock listings data here
-    setListings([
-      {
-        id: 1,
-        image: 'https://via.placeholder.com/300',
-        title: 'Beautiful Beachfront Home',
-        propertyType: 'Entire home',
-        guests: 4,
-        bedrooms: 2,
-        bathrooms: 2,
-        price: 200,
-        rating: 4.9,
-      },
-      {
-        id: 2,
-        image: 'https://via.placeholder.com/300',
-        title: 'Cozy Cabin in the Woods',
-        propertyType: 'Cabin',
-        guests: 6,
-        bedrooms: 3,
-        bathrooms: 2,
-        price: 150,
-        rating: 4.8,
-      },
-    ]);
-  }, []);
-
+const HomePage = () => {
   return (
-    <>
+    <div>
       <Navbar />
-      <SearchBar />
       <Categories />
-      <div className="container mx-auto p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {listings.map((listing) => (
-          <ListingCard key={listing.id} {...listing} />
+      <main className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {listings.map((listing, index) => (
+          <ListingCard
+            key={index}
+            image={listing.image}
+            title={listing.title}
+            host={listing.host}
+            status={listing.status}
+          />
         ))}
-      </div>
-      <Footer />
-    </>
+      </main>
+    </div>
   );
 };
 
-export default Home;
+export default HomePage;

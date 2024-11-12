@@ -6,7 +6,12 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        airbnbPink: '#FF385C',
+        airbnbGray: '#717171',
+      },
+    },
   },
   plugins: [],
 }

@@ -1,24 +1,13 @@
-import React from 'react';
-
+// src/components/Footer.jsx
 const Footer = () => {
   return (
-    <footer className="bg-gray-800 text-white py-6">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between">
-          <ul className="space-y-2">
-            <li>Support</li>
-            <li>Community</li>
-            <li>Hosting</li>
-            <li>About</li>
-          </ul>
-          <div className="space-x-4">
-            <i className="fab fa-facebook text-2xl"></i>
-            <i className="fab fa-twitter text-2xl"></i>
-            <i className="fab fa-instagram text-2xl"></i>
-          </div>
-        </div>
-        <div className="text-center text-sm mt-4">
-          &copy; 2024 Airbnb Clone. All rights reserved.
+    <footer className="p-4 border-t border-gray-200 text-sm text-gray-500">
+      <div className="flex flex-col md:flex-row justify-between space-y-2 md:space-y-0">
+        <p>&copy; 2024 Airbnb clone. All rights reserved.</p>
+        <div className="flex space-x-4">
+          <a href="#" className="hover:text-gray-800">Privacy</a>
+          <a href="#" className="hover:text-gray-800">Terms</a>
+          <a href="#" className="hover:text-gray-800">Sitemap</a>
         </div>
       </div>
     </footer>

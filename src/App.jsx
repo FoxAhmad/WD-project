@@ -1,14 +1,14 @@
-import React from 'react';
-import Home from './components/HomePage.jsx'; // Assuming you store your components in a 'components' folder
-// Make sure to import your CSS for Tailwind
+// src/App.jsx
+import HomePage from './components/HomePage';
+import Footer from './components/Footer';
 
-const App = () => {
+function App() {
   return (
-    <div >
-      <Home />
+    <div className="min-h-screen flex flex-col">
+      <HomePage />
+      <Footer />
     </div>
   );
-};
+}
 
 export default App;
-
