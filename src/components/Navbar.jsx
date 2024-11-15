@@ -6,7 +6,7 @@ const Navbar = () => {
     <header className="flex flex-col space-y-4 p-4 border-b border-gray-200">
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <img src="./public/waterbnb.png" alt="Waterbnb Logo" className="h-8" /> Waterbnb
+          <img src="./waterbnb.png" alt="Waterbnb Logo" className="h-8" /> Waterbnb
         </div>
         <div className="flex items-center space-x-4 text-gray-600">
           <button className="text-sm">Waterbnb your home</button>

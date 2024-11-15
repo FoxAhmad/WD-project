@@ -64,7 +64,7 @@ const SearchBar = () => {
           className="w-full sm:w-auto flex-grow px-2 py-2 bg-transparent outline-none text-gray-700 placeholder-gray-500"
         />
         
-        <button className="p-2 bg-[#FF385C] rounded-full  text-white sm:ml-2">
+        <button className="p-2 bg-teal-500 rounded-full  text-white sm:ml-2">
           <FaSearch />
         </button>
       </div>

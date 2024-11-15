@@ -1,49 +1,40 @@
-// src/components/HomePage.jsx
+import { useEffect, useState } from 'react';
+import io from 'socket.io-client';
 import Navbar from './Navbar';
 import Categories from './Categories';
 import ListingCard from './ListingCard';
-
-const listings = [
-  {
-    image: './demo.png',
-    title: 'Haunt the Beetlejuice house',
-    host: 'Delia Deetz',
-    status: 'Booking closed',
-  },
-  {
-    image: './demo.png',
-    title: "Stay in Prince's Purple Rain house",
-    host: 'Wendy and Lisa',
-    status: 'Sold out',
-  },
-  {
-    image: './demo.png',
-    title: "Stay in Prince's Purple Rain house",
-    host: 'Wendy and Lisa',
-    status: 'Sold out',
-  },
-  {
-    image: './demo.png',
-    title: "Stay in Prince's Purple Rain house",
-    host: 'Wendy and Lisa',
-    status: 'Sold out',
-  },
-  {
-    image: './demo.png',
-    title: "Stay in Prince's Purple Rain house",
-    host: 'Wendy and Lisa',
-    status: 'Sold out',
-  },
-  {
-    image: './demo.png',
-    title: "Stay in Prince's Purple Rain house",
-    host: 'Wendy and Lisa',
-    status: 'Sold out',
-  },
-  // Add more listings as needed
-];
+const socket = io('http://localhost:3001'); // Ensure the URL matches your server
 
 const HomePage = () => {
+  const [listings, setListings] = useState([]);
+  useEffect(() => {
+    const fetchListings = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/listings');
+        const data = await response.json();
+        setListings(data);
+      } catch (error) {
+        console.error("Error fetching listings:", error);
+      }
+    };
+  
+    fetchListings();
+  
+    // Listen for updates
+    socket.on('listingUpdated', (updatedListings) => {
+      
+      console.log('Received updated listings:', updatedListings);
+      setListings(updatedListings);
+    });
+  
+    // Clean up the WebSocket connection on component unmount
+    return () => {
+      socket.off('listingUpdated');
+    };
+  }, []);
+  
+
+
   return (
     <div>
       <Navbar />
@@ -52,10 +43,13 @@ const HomePage = () => {
         {listings.map((listing, index) => (
           <ListingCard
             key={index}
+            
             image={listing.image}
+            id={listing.id}
             title={listing.title}
             host={listing.host}
             status={listing.status}
+            price={listing.price}
           />
         ))}
       </main>
