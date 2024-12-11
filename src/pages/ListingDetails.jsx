@@ -1,5 +1,22 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { react,useEffect, useState } from 'react';
+import CustomSlider from '../components/custom.slider.jsx'; 
+
+
+import { Slide } from 'react-slideshow-image';
+import 'react-slideshow-image/dist/styles.css'
+
+
+
+const divStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundSize: 'cover',
+  height: '500px'
+}
+
+
 
 const ListingDetails = () => {
   const { id } = useParams();
@@ -24,22 +41,64 @@ const ListingDetails = () => {
 
   if (error) return <p>{error}</p>;
   if (!listing) return <p>Loading...</p>;
-
+  const bookedbutton = () => {
+    return (<button
+      className="w-full py-4 bg-teal-600 text-white text-2xl font-semibold rounded-lg hover:bg-red-700 transition duration-300"
+    >
+      Booked
+    </button>);
+  };
+  const bookbutton = () => {
+    return (
+      <button
+      onClick={() => navigate(`/bookings/${listing.id}`)}
+      className="w-full py-4 bg-teal-600 text-white text-2xl font-semibold rounded-lg hover:bg-teal-700 transition duration-300"
+    >
+      Book Now
+    </button>
+    );
+  };
+  
+  
+  const bnb = (booked, listing) => {
+    return (
+      <div>
+        {booked ? (
+          bookedbutton()
+        ) : (
+          bookbutton()
+        )}
+      </div>
+    );
+  };
+  
   return (
     <div className="max-w-4xl mx-auto p-8 bg-white shadow-xl rounded-lg">
     {/* Listing Image */}
-    <img
+    {/* <img
       src={listing.image || "./demo.png"}
       alt={listing.title || "Listing Image"}
       className="w-full h-96 object-cover rounded-lg mb-8"
-    />
-    
+    /> */}
+    {/* <CustomSlider>{listing.image}</CustomSlider> */}
+    <div className="slide-container">
+        <Slide>
+         {listing.image.map((slideImage, index)=> (
+            <div key={index}>
+              <div style={{ ...divStyle, 'backgroundImage': `url(${slideImage
+              })` }}>
+                
+              </div>
+            </div>
+          ))} 
+        </Slide>
+      </div>
     <div className="flex justify-between items-center mb-6">
       <h1 className="text-4xl font-extrabold text-gray-800">
         {listing.title || "No title available"}
       </h1>
       <span
-        className={`ml-3 px-4 py-2 text-white rounded-lg ${
+        className={`ml-3 px-4 py-1 text-white rounded-lg ${
           listing.status === "Booking open" ? "bg-green-500" : "bg-red-500"
         }`}
       >
@@ -69,8 +128,13 @@ const ListingDetails = () => {
         </p>
         <p className="text-xl text-gray-700">
           <span className="font-semibold text-gray-900">Amenities:</span> 
+    
           {listing.amenities ? listing.amenities.join(", ") : "No amenities available"}
         </p>
+        <p className="text-xl text-gray-700">
+          <span className="font-semibold text-gray-900">Location: </span> 
+          {listing.location || "N/A"}
+         </p>
       </div>
     </div>
   
@@ -82,12 +146,10 @@ const ListingDetails = () => {
   
     {/* Action Button */}
     <div className="mt-8">
-      <button
-        onClick={() => navigate(`/bookings/${listing.id}`)}
-        className="w-full py-4 bg-teal-600 text-white text-2xl font-semibold rounded-lg hover:bg-teal-700 transition duration-300"
-      >
-        Book Now
-      </button>
+      
+      {bnb(listing.booked, listing)}
+      
+     
     </div>
   </div>
   

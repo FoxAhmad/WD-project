@@ -1,6 +1,5 @@
 [
-    {
-      "image": "../public/demo.png",
+    {"image": ["../public/demo.png", "../public/demo2.jpg", "../public/demo3.jpg"],
       "id": 1,
       "type": "House",
       "amenities": ["WiFi", "Parking"],
@@ -9,12 +8,14 @@
       "bathrooms": 1,
       "beds": 2,
       "title": "Haunt the Beetlejuice House",
-      "host": "Delia Deetz",
+      "host": "Deez nuts",
       "status": "Booking open",
-      "price": 110
+      "price": 110,
+      "booked": false,
+      "location": "karachi"
     },
     {
-        "image": "../public/demo.png",
+       "image": ["../public/demo.png", "../public/demo2.jpg", "../public/demo3.jpg"],
       "id": 2,
       "type": "House",
       "amenities": ["WiFi", "Parking"],
@@ -25,10 +26,12 @@
       "title": "Stay at the Home Alone House",
       "host": "Kevin McCallister",
       "status": "Booking closed",
-      "price": 200
+      "price": 200,
+      "booked": true,
+      "location": "Islamabad"
     },
     {
-        "image": "../public/demo.png",
+      "image": ["../public/demo.png", "../public/demo2.jpg", "../public/demo3.jpg"],
       "id": 3,
       "type": "House",
       "amenities": ["WiFi", "Parking"],
@@ -39,10 +42,12 @@
       "title": "Stay at the Home Alone House",
       "host": "Kevin McCallister",
       "status": "Booking closed",
-      "price": 400
+      "price": 400,
+      "booked": true,
+      "location": "New York"
     },
     {
-        "image": "../public/demo.png",
+       "image": ["../public/demo.png", "../public/demo2.jpg", "../public/demo3.jpg"],
       "id": 4,
       "type": "House",
       "amenities": ["WiFi", "Parking"],
@@ -53,10 +58,12 @@
       "title": "Stay at the Home Alone House",
       "host": "Kevin McCallister",
       "status": "Booking closed",
-      "price": 100
+      "price": 100,
+      "booked": true,
+      "location": "New York"
     },
     {
-        "image": "../public/demo.png",
+      "image": ["../public/demo.png", "../public/demo2.jpg", "../public/demo3.jpg"],
       "id": 5,
       "type": "House",
       "amenities": ["WiFi", "Parking"],
@@ -67,10 +74,12 @@
       "title": "Stay at the Home Alone House",
       "host": "Kevin McCallister",
       "status": "Booking closed",
-      "price": 120
+      "price": 120,
+      "booked": true,
+      "location": "Lahore"
     },
     {
-        "image": "../public/demo.png",
+     "image": ["../public/demo.png", "../public/demo2.jpg", "../public/demo3.jpg"],
       "id": 6,
       "type": "House",
       "amenities": ["WiFi", "Parking"],
@@ -81,7 +90,9 @@
       "title": "Stay at the Home Alone House",
       "host": "Kevin McCallister",
       "status": "Booking closed",
-      "price": 230
+      "price": 230,
+      "booked": true,
+      "location": "DHA Lahore"
    }
   ]
   

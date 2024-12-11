@@ -23,7 +23,7 @@ const HomePage = () => {
     // Listen for updates
     socket.on('listingUpdated', (updatedListings) => {
       
-      console.log('Received updated listings:', updatedListings);
+     {/* console.log('Received updated listings:', updatedListings);*/}
       setListings(updatedListings);
     });
   
@@ -43,13 +43,13 @@ const HomePage = () => {
         {listings.map((listing, index) => (
           <ListingCard
             key={index}
-            
             image={listing.image}
             id={listing.id}
             title={listing.title}
             host={listing.host}
             status={listing.status}
             price={listing.price}
+            location={listing.location}
           />
         ))}
       </main>
