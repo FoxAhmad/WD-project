@@ -48,7 +48,7 @@ const ListingCard = ({ id, image, title, host, status, price, location }) => {
       <p className="text-sm text-gray-500">Hosted by {host}</p>
       <p className="text-sm text-gray-500">{location}</p>
       <p className="text-lg font-bold">${price} /day</p>
-
+       
       {/* Booking Button */}
       <button
         onClick={handleBookClick}

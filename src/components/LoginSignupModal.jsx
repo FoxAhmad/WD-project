@@ -17,7 +17,7 @@ const LoginSignupModal = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
+      <div className="bg-white p-6 rounded  shadow-md w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">Login / Sign Up</h2>
         <div className="space-y-4">
           <button
@@ -25,15 +25,9 @@ const LoginSignupModal = ({ onClose }) => {
             onClick={() => window.location.href = '/login'} // Redirect to login page
             className="w-full bg-teal-500 text-white py-2 rounded"
           >
-            Login
+            Login / Sign Up
           </button>
-          <button
-            type="button"
-            onClick={() => window.location.href = '/signup'} // Redirect to signup page
-            className="w-full bg-teal-500 text-white py-2 rounded"
-          >
-            Sign Up
-          </button>
+          
         </div>
         <button
           type="button"

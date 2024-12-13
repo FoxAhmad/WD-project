@@ -4,12 +4,13 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
 const adminRoutes = require('./routes/adminRoutes.cjs');
 const sellerRoutes = require('./routes/sellerRoutes.cjs');
- const authRoutes = require('./routes/authRoutes.cjs'); // Optional for login
+const authRoutes = require('./routes/authRoutes.cjs'); // Optional for login
 
-// Optional for login/logout
-// // Initialize Express App
+// Initialize Express App
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -26,16 +27,11 @@ app.use(cors({
 app.use(express.json());
 app.use('/api/admin', adminRoutes);
 app.use('/api/seller', sellerRoutes);
-app.use('/api/auth', authRoutes); 
-// MongoDB Connection
-const MONGO_URI = process.env.MONGO_URI;
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('Failed to connect to MongoDB:', err));
+app.use('/api/auth', authRoutes);
 
-// Mongoose Schema and Model for Listings
+// Mongoose Schema for Listings
 const listingSchema = new mongoose.Schema({
-  image: [String],
+  images: [String],
   id: Number,
   type: String,
   amenities: [String],
@@ -44,14 +40,41 @@ const listingSchema = new mongoose.Schema({
   bathrooms: Number,
   beds: Number,
   title: String,
-  host: String,
-  status: String,
+  host: String, // This might represent the seller's name or ID
+  status: { type: String, default: 'Booking open' },
   price: Number,
-  booked: Boolean,
+  booked: { type: Boolean, default: false },
   location: String,
+  seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Add seller reference if needed
 });
 
-const Listing = mongoose.model('Listing', listingSchema);
+// Check if the Listing model is already defined
+const Listing = mongoose.models.Listing || mongoose.model('Listing', listingSchema);
+
+
+// MongoDB Connection
+const MONGO_URI = process.env.MONGO_URI;
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => {
+    console.log('Connected to MongoDB');
+    
+    // After MongoDB is connected, insert the listings if not already done
+    // const dataPath = path.join(__dirname, 'listings.json');
+    // const listingsData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+
+    // Listing.countDocuments({}, (err, count) => {
+    //   if (count === 0) { // Only insert if no listings are already in the database
+    //     Listing.insertMany(listingsData)
+    //       .then((result) => {
+    //         console.log('Listings added successfully:', result);
+    //       })
+    //       .catch((error) => {
+    //         console.error('Error adding listings:', error);
+    //       });
+    //   }
+    // });
+  })
+  .catch((err) => console.error('Failed to connect to MongoDB:', err));
 
 // Emit Updated Listings
 async function emitUpdatedListings() {
@@ -66,14 +89,7 @@ async function emitUpdatedListings() {
 // GET All Listings
 app.get('/api/listings', async (req, res) => {
   try {
-    const {
-      type, // "Stays" or "Experiences"
-      location,
-      guests,
-      checkIn,
-      checkOut,
-      date, // For "Experiences"
-    } = req.query;
+    const { type, location, guests, checkIn, checkOut, date } = req.query;
 
     // Build filter query
     const query = {};
@@ -102,7 +118,8 @@ app.get('/api/listings', async (req, res) => {
 // GET Listing by ID
 app.get('/api/listings/:id', async (req, res) => {
   try {
-    const listing = await Listing.findOne({ id: req.params.id });
+    const listing = await Listing.findById(req.params.id); 
+    
     if (listing) {
       res.json(listing);
     } else {
@@ -119,7 +136,6 @@ app.post('/api/listings', async (req, res) => {
   try {
     const newListing = new Listing(req.body);
     await newListing.save();
-
     await emitUpdatedListings(); // Emit real-time updates
     res.status(201).json({ message: 'Listing added successfully' });
   } catch (err) {
@@ -146,4 +162,3 @@ const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
-

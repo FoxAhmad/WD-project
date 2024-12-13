@@ -56,6 +56,7 @@ const HomePage = () => {
             status={listing.status}
             price={listing.price}
             location={listing.location}
+            seller={listing.seller} // Pass seller information to the card
           />
         ))}
       </main>

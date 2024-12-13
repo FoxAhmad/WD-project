@@ -5,7 +5,7 @@ import LoginSignupModal from './LoginSignupModal';
 import SearchBar from './SearchBar';
 
 const Navbar = ({ onSearch }) => {
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(false); // Show login/signup modal
   const [user, setUser] = useState(null); // Store user info
   const navigate = useNavigate();
 
@@ -37,7 +37,7 @@ const Navbar = ({ onSearch }) => {
         <div className="flex items-center space-x-4 text-gray-600">
           {user ? (
             <>
-              <span className="text-sm">{`Role: ${user.role}`}</span>
+              <span className="text-sm">{`Name: ${user.name}`}{`Role: ${user.role}`}</span>
               <button className="text-sm hover:text-gray-800" onClick={handleLogout}>
                 Logout
               </button>
