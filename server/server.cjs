@@ -1,70 +1,139 @@
-// server/server.cjs
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
+const mongoose = require('mongoose');
+const adminRoutes = require('./routes/adminRoutes.cjs');
+const sellerRoutes = require('./routes/sellerRoutes.cjs');
+ const authRoutes = require('./routes/authRoutes.cjs'); // Optional for login
 
+// Optional for login/logout
+// // Initialize Express App
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:5173',  // Allow only your frontend origin
-    methods: ['GET', 'POST']
-  }
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+  },
 });
 
+// Middleware
 app.use(cors({
-  origin: 'http://localhost:5173'
+  origin: 'http://localhost:5173',
 }));
 app.use(express.json());
+app.use('/api/admin', adminRoutes);
+app.use('/api/seller', sellerRoutes);
+app.use('/api/auth', authRoutes); 
+// MongoDB Connection
+const MONGO_URI = process.env.MONGO_URI;
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((err) => console.error('Failed to connect to MongoDB:', err));
 
-// Path to listings.json file
-const listingsPath = path.join(__dirname, 'listings.json');
+// Mongoose Schema and Model for Listings
+const listingSchema = new mongoose.Schema({
+  image: [String],
+  id: Number,
+  type: String,
+  amenities: [String],
+  guests: Number,
+  bedrooms: Number,
+  bathrooms: Number,
+  beds: Number,
+  title: String,
+  host: String,
+  status: String,
+  price: Number,
+  booked: Boolean,
+  location: String,
+});
 
-// Load listings data from JSON file
-let listings = require(listingsPath);
+const Listing = mongoose.model('Listing', listingSchema);
 
-// Serve listings via a GET endpoint
-app.get('/api/listings/:id', (req, res) => {
-  const listingId = req.params.id;
-  
-  let listing;
-for (let i = 0; i < listings.length; i++) {
- 
-  if (listings[i].id == listingId) {
-    listing = listings[i];
-   
-    break; // Stops once a match is found
+// Emit Updated Listings
+async function emitUpdatedListings() {
+  try {
+    const listings = await Listing.find();
+    io.emit('listingUpdated', listings); // Notify all connected clients
+  } catch (err) {
+    console.error('Error emitting listings:', err);
   }
 }
 
-  if (listing) {
-    res.json(listing);
-  } else {
-   
-    res.status(404).json({ message: 'Listing not found' });
+// GET All Listings
+app.get('/api/listings', async (req, res) => {
+  try {
+    const {
+      type, // "Stays" or "Experiences"
+      location,
+      guests,
+      checkIn,
+      checkOut,
+      date, // For "Experiences"
+    } = req.query;
+
+    // Build filter query
+    const query = {};
+
+    if (type) query.type = type;
+    if (location) query.location = { $regex: location, $options: 'i' }; // Case-insensitive location match
+    if (guests) query.guests = { $gte: parseInt(guests, 10) };
+
+    if (type === 'Stays') {
+      if (checkIn || checkOut) {
+        query.status = 'available'; // Example: Add logic to filter stays based on availability
+      }
+    } else if (type === 'Experiences' && date) {
+      query.status = 'available'; // Example: Add logic for filtering experiences by date
+    }
+
+    const listings = await Listing.find(query);
+    res.json(listings);
+    emitUpdatedListings(); // Emit real-time updates
+  } catch (err) {
+    console.error('Error retrieving filtered listings:', err);
+    res.status(500).json({ message: 'Error retrieving listings' });
   }
 });
-app.get('/api/listings', (req, res) => {
 
-  res.json(listings);
-  
+// GET Listing by ID
+app.get('/api/listings/:id', async (req, res) => {
+  try {
+    const listing = await Listing.findOne({ id: req.params.id });
+    if (listing) {
+      res.json(listing);
+    } else {
+      res.status(404).json({ message: 'Listing not found' });
+    }
+  } catch (err) {
+    console.error('Error retrieving listing:', err);
+    res.status(500).json({ message: 'Error retrieving listing' });
+  }
 });
 
+// POST Add a New Listing
+app.post('/api/listings', async (req, res) => {
+  try {
+    const newListing = new Listing(req.body);
+    await newListing.save();
 
-// Function to add a new listing and emit updates to clients
-function addListing(newListing) {
-  listings.push(newListing);
-  console.log('New listing added:', newListing);
-  console.log('Updated listings array:', listings);
-  io.emit('listingUpdated', listings);  // Notify all connected clients
-}
+    await emitUpdatedListings(); // Emit real-time updates
+    res.status(201).json({ message: 'Listing added successfully' });
+  } catch (err) {
+    console.error('Error adding listing:', err);
+    res.status(500).json({ message: 'Error adding listing' });
+  }
+});
 
-// WebSocket connection for real-time updates
+// WebSocket Connection for Real-Time Updates
 io.on('connection', (socket) => {
   console.log('A user connected');
+
+  // Send the current listings when a client connects
+  emitUpdatedListings();
 
   // Handle disconnection
   socket.on('disconnect', () => {
@@ -72,24 +141,9 @@ io.on('connection', (socket) => {
   });
 });
 
-// API endpoint to add a new listing
-app.post('/api/listings', (req, res) => {
-  const newListing = req.body;
-  addListing(newListing);
-  res.status(201).json({ message: 'Listing added successfully' });
-});
-
-// Watch for changes in listings.json file and emit updates
-fs.watchFile(listingsPath, (curr, prev) => {
-  console.log('listings.json file has changed');
-  // Clear the require cache and reload listings data
-  delete require.cache[require.resolve(listingsPath)];
-  listings = require(listingsPath);
-  io.emit('listingUpdated', listings);  // Emit updated listings to clients
-});
-
-// Start the server
+// Start the Server
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
+

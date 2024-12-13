@@ -64,7 +64,7 @@ function CustomCarousel({ children }) {
             className={"slider__item slider__item-active-" + (activeIndex + 1)}
             key={index}
           >
-            console.log(item);
+            
             {item}
           </div>
         );
