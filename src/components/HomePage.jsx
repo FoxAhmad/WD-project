@@ -4,41 +4,37 @@ import Navbar from './Navbar';
 import Categories from './Categories';
 import ListingCard from './ListingCard';
 
-const socket = io('http://localhost:3001'); // Ensure the URL matches your server
+const socket = io('http://localhost:3001');
 
 const HomePage = () => {
   const [listings, setListings] = useState([]);
-  const [searchActive, setSearchActive] = useState(false); // New state to track search activity
+  const [searchActive, setSearchActive] = useState(false);
 
   useEffect(() => {
-    if (searchActive) return; // Skip fetching all listings when search is active
+    if (searchActive) return;
 
     const fetchListings = async () => {
       try {
         const response = await fetch('http://localhost:3001/api/listings');
         const data = await response.json();
         setListings(data);
-      } catch (error) {
-        console.error('Error fetching listings:', error);
+      } catch (err) {
+        console.error('Error fetching listings:', err);
       }
     };
 
     fetchListings();
 
-    // Listen for WebSocket updates
     socket.on('listingUpdated', (updatedListings) => {
-      if (!searchActive) setListings(updatedListings); // Update listings only if search is not active
+      if (!searchActive) setListings(updatedListings);
     });
 
-    // Clean up the WebSocket connection on unmount
-    return () => {
-      socket.off('listingUpdated');
-    };
+    return () => socket.off('listingUpdated');
   }, [searchActive]);
 
   const handleSearch = (searchResults) => {
     setListings(searchResults);
-    setSearchActive(true); // Mark search as active
+    setSearchActive(true);
   };
 
   return (
@@ -46,17 +42,16 @@ const HomePage = () => {
       <Navbar onSearch={handleSearch} />
       <Categories />
       <main className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {listings.map((listing, index) => (
+        {listings.map((listing) => (
           <ListingCard
-            key={index}
+            key={listing.orid}
+            orid={listing.orid}
             image={listing.image}
-            id={listing.id}
             title={listing.title}
             host={listing.host}
             status={listing.status}
             price={listing.price}
             location={listing.location}
-            seller={listing.seller} // Pass seller information to the card
           />
         ))}
       </main>

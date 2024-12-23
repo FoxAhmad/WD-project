@@ -8,7 +8,7 @@ const bcrypt = require('bcrypt');
 const authMiddleware = require('../middleware/authMiddleware.cjs');
 
 // Use environment variable for the JWT secret
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const JWT_SECRET = process.env.JWT_SECRET || '17301';
 
 // User Login
 router.post('/login', async (req, res) => {

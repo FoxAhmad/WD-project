@@ -11,20 +11,16 @@ const divStyle = {
   height: '250px',
 };
 
-const ListingCard = ({ id, image, title, host, status, price, location }) => {
+const ListingCard = ({ orid, image, title, host, status, price, location }) => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
-    navigate(`/listings/${id}`);
+    navigate(`/listings/${orid}`);
   };
 
   const handleBookClick = (e) => {
-    e.stopPropagation(); // Prevents navigation to listing page on button click
-    navigate(`/bookings/${id}`);
-  };
-
-  const stopPropagation = (e) => {
-    e.stopPropagation(); // Prevent click events on the slider from propagating
+    e.stopPropagation();
+    navigate(`/bookings/${orid}`);
   };
 
   return (
@@ -32,8 +28,7 @@ const ListingCard = ({ id, image, title, host, status, price, location }) => {
       onClick={handleCardClick}
       className="border p-4 rounded-lg shadow-md hover:text-gray-800 transform transition-transform duration-200 hover:scale-110 cursor-pointer"
     >
-      {/* Slider */}
-      <div className="slide-container" onClick={stopPropagation}>
+      <div className="slide-container" onClick={(e) => e.stopPropagation()}>
         <Slide>
           {image.map((slideImage, index) => (
             <div key={index}>
@@ -43,13 +38,11 @@ const ListingCard = ({ id, image, title, host, status, price, location }) => {
         </Slide>
       </div>
 
-      {/* Details */}
       <h3 className="font-semibold text-lg">{title}</h3>
       <p className="text-sm text-gray-500">Hosted by {host}</p>
       <p className="text-sm text-gray-500">{location}</p>
       <p className="text-lg font-bold">${price} /day</p>
-       
-      {/* Booking Button */}
+
       <button
         onClick={handleBookClick}
         className="mt-2 p-2 bg-teal-500 text-white rounded-lg"

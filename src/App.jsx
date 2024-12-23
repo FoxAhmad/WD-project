@@ -5,16 +5,19 @@ import ListingDetails from './pages/ListingDetails';
 import BookingPage from './pages/BookingPage';
 import LoginPage from './pages/LoginPage';
 import SellerPage from './pages/SellerPage';
+import AdminPage from './pages/AdminPage';
+//import { Admin } from 'mongodb';
 function App() {
   return (
     <div className="min-h-screen flex flex-col">
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/listings/:id" element={<ListingDetails />} />
-        <Route path="/bookings/:id" element={<BookingPage />} />
+        <Route path="/listings/:orid" element={<ListingDetails />} />
+        <Route path="/bookings/:orid" element={<BookingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<LoginPage />} />
         <Route path="/seller" element={<SellerPage />} />
+        {/*<Route path="/admin" element={<AdminPage />} />*/}
       </Routes>
       <Footer />
     </div>

@@ -9,30 +9,46 @@ const path = require('path');
 const adminRoutes = require('./routes/adminRoutes.cjs');
 const sellerRoutes = require('./routes/sellerRoutes.cjs');
 const authRoutes = require('./routes/authRoutes.cjs'); // Optional for login
+const jwt = require('jsonwebtoken'); // For verifying tokens
+const User = require('./models/User.cjs');
+//const { verifyToken } = require('./middleware/authMiddleware.cjs'); 
+const { authenticateUser, authorizeRoles } = require('./middleware/authMiddleware.cjs');
+//const Listing = require('./models/Listing.cjs'); // Assuming a Mongoose model for listings
+const router = express.Router();
+
 
 // Initialize Express App
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: 'http://localhost:5173',
-    methods: ['GET', 'POST'],
+   
+      origin: 'http://localhost:5173', // Match frontend origin
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      allowedHeaders: ['Content-Type', 'Authorization'], // Include Authorization for token
+      credentials: true,
   },
 });
+ // Your Mongoose User model
+
 
 // Middleware
 app.use(cors({
   origin: 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+
 }));
 app.use(express.json());
 app.use('/api/admin', adminRoutes);
 app.use('/api/seller', sellerRoutes);
 app.use('/api/auth', authRoutes);
 
-// Mongoose Schema for Listings
+// // Mongoose Schema for Listings
 const listingSchema = new mongoose.Schema({
   images: [String],
-  id: Number,
+  orid: Number,
   type: String,
   amenities: [String],
   guests: Number,
@@ -58,21 +74,7 @@ mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log('Connected to MongoDB');
     
-    // After MongoDB is connected, insert the listings if not already done
-    // const dataPath = path.join(__dirname, 'listings.json');
-    // const listingsData = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
-
-    // Listing.countDocuments({}, (err, count) => {
-    //   if (count === 0) { // Only insert if no listings are already in the database
-    //     Listing.insertMany(listingsData)
-    //       .then((result) => {
-    //         console.log('Listings added successfully:', result);
-    //       })
-    //       .catch((error) => {
-    //         console.error('Error adding listings:', error);
-    //       });
-    //   }
-    // });
+   
   })
   .catch((err) => console.error('Failed to connect to MongoDB:', err));
 
@@ -115,25 +117,64 @@ app.get('/api/listings', async (req, res) => {
   }
 });
 
-// GET Listing by ID
-app.get('/api/listings/:id', async (req, res) => {
+app.get('/api/users/me', async (req, res) => {
   try {
-    const listing = await Listing.findById(req.params.id); 
-    
+    const token = req.headers.authorization?.split(' ')[1]; // Extract token from Authorization header
+    if (!token) {
+      return res.status(401).json({ message: 'Unauthorized: No token provided' });
+    }
+
+    // Verify the token
+    const decoded = jwt.verify(token, '17301');
+    //console.log(decoded);
+    const userId = decoded.id; // Assuming the token contains the user's ID
+
+    // Fetch the user from MongoDB
+    const user = await User.findById(userId).select('-password'); 
+    // Exclude the password field
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    });
+   // console.log(res);
+  } catch (error) {
+    console.error('Error fetching user info:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+// GET Listing by ID
+app.get('/api/listings/:orid', async (req, res) => {
+  const { orid } = req.params; // Extract 'orid' from route params
+  //console.log(orid); // Debugging: Log orid to confirm it's being passed
+
+  try {
+    // Use Mongoose to find a single document with the matching 'orid'
+    const listing = await Listing.findOne({ orid: orid });
+
     if (listing) {
       res.json(listing);
     } else {
       res.status(404).json({ message: 'Listing not found' });
     }
-  } catch (err) {
-    console.error('Error retrieving listing:', err);
-    res.status(500).json({ message: 'Error retrieving listing' });
+  } catch (error) {
+    console.error('Error fetching listing:', error.message);
+    res.status(500).json({ message: 'Server error occurred' });
   }
 });
+
+
 
 // POST Add a New Listing
 app.post('/api/listings', async (req, res) => {
   try {
+    //console.log("HI im here");
     const newListing = new Listing(req.body);
     await newListing.save();
     await emitUpdatedListings(); // Emit real-time updates

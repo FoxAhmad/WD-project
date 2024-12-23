@@ -1,22 +1,20 @@
 const Listing = require('./Listing.cjs');
-
-/**
- * Function to get all listings for a seller.
- * @param {string} sellerId - The ID of the seller.
- * @returns {Promise<Array>} - Returns a list of listings.
- * @throws {Error} - Throws an error if fetching listings fails.
- */
+// Mongoose Schema for Listings
 
 
 const getListingsBySeller = async (sellerId) => {
   try {
-    // Fetch all listings for the given seller ID
-    return await Listing.find({ seller: sellerId });
+    console.log("Fetching listings for seller:", sellerId); // Debug log
+    const listings = await Listing.find({ seller: sellerId });
+    //console.log("Listing", Listing[1]); // Debug log
+    //console.log("Listings fetched successfully:", listings); // Debug log
+    return listings;
   } catch (error) {
     console.error(`Error fetching listings for seller ID ${sellerId}:`, error);
     throw new Error('Failed to fetch listings. Please try again later.');
   }
 };
+
 
 /**
  * Function to delete a specific listing by its ID.
@@ -46,3 +44,4 @@ module.exports = {
   getListingsBySeller,
   deleteListingById,
 };
+

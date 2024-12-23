@@ -1,8 +1,18 @@
 import { useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { Slide } from 'react-slideshow-image';
+import 'react-slideshow-image/dist/styles.css';
+import React from 'react';
 
+const divStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundSize: 'cover',
+  height: '500px',
+};
 const BookingPage = () => {
-  const { id } = useParams();
+  const { orid } = useParams();
   const [listing, setListing] = useState(null);
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
@@ -11,7 +21,7 @@ const BookingPage = () => {
   useEffect(() => {
     const fetchListing = async () => {
       try {
-        const response = await fetch(`http://localhost:3001/api/listings/${id}`);
+        const response = await fetch(`http://localhost:3001/api/listings/${orid}`);
         const data = await response.json();
         setListing(data);
       } catch (error) {
@@ -19,7 +29,7 @@ const BookingPage = () => {
       }
     };
     fetchListing();
-  }, [id]);
+  }, [orid]);
 
   const calculateTotalPrice = () => {
     const nights = (new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24);
@@ -28,7 +38,7 @@ const BookingPage = () => {
 
   const handleBooking = async () => {
     try {
-      const bookingDetails = { checkIn, checkOut, listingId: id };
+      const bookingDetails = { checkIn, checkOut, listingId: orid };
       const response = await fetch(`http://localhost:3001/api/bookings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -45,12 +55,17 @@ const BookingPage = () => {
     <div className="max-w-2xl mx-auto p-8 bg-white shadow-xl rounded-lg">
     {listing && (
       <>
-        {/* Listing Image */}
-        <img
-          src={listing.image || "./demo.png"}
-          alt={listing.title || "Listing Image"}
-          className="w-full h-64 object-cover rounded-lg mb-6"
-        />
+     
+            {/* Image Slider */}
+            <div className="slide-container">
+              <Slide>
+                {listing.image.map((slideImage, index) => (
+                  <div key={index}>
+                    <div style={{ ...divStyle, backgroundImage: `url(${slideImage})` }} />
+                  </div>
+                ))}
+              </Slide>
+            </div>
         
         <h2 className="text-3xl font-bold text-gray-800 mb-6">
           Booking for <span className="text-teal-600">{listing.title}</span>

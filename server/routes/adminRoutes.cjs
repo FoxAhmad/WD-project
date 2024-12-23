@@ -9,7 +9,7 @@ const bcrypt = require('bcrypt');
 const authMiddleware = require('../middleware/authMiddleware.cjs');
 
 // Use environment variable for the JWT secret
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const JWT_SECRET = process.env.JWT_SECRET || '17301';
 
 // User Login
 router.post('/login', async (req, res) => {
@@ -75,7 +75,7 @@ router.post('/signup', async (req, res) => {
 });
 
 // Protected Route Example: Get User Profile
-router.get('/profile', authMiddleware.authenticateUser, async (req, res) => {
+router.get('/profile', authMiddleware.authenticateUser, authMiddleware.authorizeRoles('admin') , async (req, res) => {
   try {
     // Fetch user information
     const user = await User.findById(req.user.id).select('-password'); // Exclude password field

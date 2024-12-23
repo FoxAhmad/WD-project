@@ -11,7 +11,7 @@ router.get('/listings', authenticateUser, authorizeRoles('seller'), async (req, 
     const sellerId = req.user.id;
 
     // Fetch listings where the seller ID matches the authenticated user's ID
-    const listings = await Listing.find({ seller: sellerId });
+    const listings = await Listing.getListingsBySeller( sellerId );
 
     if (!listings.length) {
       return res.status(404).json({ message: 'No listings found for this seller.' });
