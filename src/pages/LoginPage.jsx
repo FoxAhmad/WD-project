@@ -54,15 +54,22 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md w-96 space-y-4">
-        <h2 className="text-xl font-bold text-center">
+    <div className="flex flex-wrap justify-center h-screen bg-gradient-to-br from-teal-100 via-teal-200 to-gray-100">
+  {/* Form Section */}
+  <div className="flex flex-col items-center justify-center w-full md:w-1/2">
+    <div className="lg:w-[28rem] mx-auto flex flex-col justify-center pt-8 px-6">
+      <p className="text-left text-4xl font-bold text-teal-700">Welcome</p>
+      <p className="mt-2 text-left text-gray-600">
+        Please enter your details to continue.
+      </p>
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-lg w-full space-y-6 mt-4">
+        <h2 className="text-2xl font-semibold text-center text-teal-700">
           {isSignup ? 'Sign Up' : 'Log In'}
         </h2>
 
         {/* Error and Success Messages */}
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        {success && <p className="text-green-500 text-sm">{success}</p>}
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        {success && <p className="text-green-500 text-sm text-center">{success}</p>}
 
         {/* Name Field for Signup */}
         {isSignup && (
@@ -71,7 +78,7 @@ const LoginPage = () => {
             placeholder="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
+            className="w-full p-3 border border-gray-300 rounded focus:ring focus:ring-teal-200"
             required
           />
         )}
@@ -82,7 +89,7 @@ const LoginPage = () => {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded"
+          className="w-full p-3 border border-gray-300 rounded focus:ring focus:ring-teal-200"
           required
         />
 
@@ -92,18 +99,20 @@ const LoginPage = () => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded"
+          className="w-full p-3 border border-gray-300 rounded focus:ring focus:ring-teal-200"
           required
         />
 
         {/* Role Selection for Signup */}
         {isSignup && (
           <div className="space-y-2">
-            <label className="block text-sm font-medium">Select Role:</label>
+            <label className="block text-sm font-medium text-gray-600">
+              Select Role:
+            </label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded"
+              className="w-full p-3 border border-gray-300 rounded focus:ring focus:ring-teal-200"
             >
               <option value="customer">Customer</option>
               <option value="seller">Seller</option>
@@ -114,27 +123,76 @@ const LoginPage = () => {
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full bg-teal-500 text-white py-2 rounded hover:bg-teal-600"
+          className="w-full bg-teal-600 text-white py-3 rounded hover:bg-teal-700 transition"
         >
           {isSignup ? 'Sign Up' : 'Log In'}
         </button>
 
         {/* Toggle Between Signup and Login */}
-        <p className="text-sm text-center">
+        <p className="text-sm text-center text-gray-600">
           {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
           <span
             onClick={() => {
               setIsSignup(!isSignup);
               setError(null);
-              setSuccess(null); // Clear messages on toggle
+              setSuccess(null);
             }}
-            className="text-teal-500 cursor-pointer hover:underline"
+            className="text-teal-600 cursor-pointer hover:underline"
           >
             {isSignup ? 'Log In' : 'Sign Up'}
           </span>
         </p>
       </form>
+      <p className="mt-4 text-sm text-gray-600">
+        Are you an admin?{' '}
+        <span
+          onClick={() => navigate('/adminlog')}
+          className="text-teal-600 cursor-pointer hover:underline"
+        >
+          Log in here
+        </span>
+      </p>
     </div>
+  </div>
+
+  {/* Advertisement Section */}
+  <div className="hidden md:flex md:w-1/2 relative bg-gray-800 items-center justify-center">
+  {/* Background Image */}
+  <div 
+    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+    style={{ backgroundImage: "url('../public/demo.png')" }}
+  ></div>
+
+  {/* Gradient Overlay */}
+  <div className="hidden md:block md:absolute z-0 left-0 top-0 w-full h-full bg-gradient-to-r from-teal-200 via-white-100 to-white-300" />
+   
+
+  {/* Text Content */}
+  <div className="relative h-full w-full">
+  {/* Background Image */}
+  <div 
+    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+    style={{ backgroundImage: "url('../public/demo.png')" }}
+  ></div>
+
+  {/* Gradient Overlay */}
+  <div className="absolute inset-0 bg-gradient-to-r from-teal-200 via-transparent to-transparent opacity-70"></div>
+
+  {/* Text Content */}
+  <div className="absolute bottom-0 left-0  p-6 bg-black bg-opacity-50 text-white">
+    <h2 className="text-lg font-bold mb-2">
+      Welcome to Water BnB
+    </h2>
+    <p className="text-sm font-semibold">
+      Experience the ultimate stay with Water BnB! Discover serene waterfront properties, luxurious lake houses, and charming beachside retreats. Dive into a world of comfort and tranquility, where every stay feels like a vacation.
+    </p>
+  </div>
+</div>
+
+</div>
+
+</div>
+
   );
 };
 

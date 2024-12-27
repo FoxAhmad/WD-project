@@ -10,7 +10,50 @@ const divStyle = {
   backgroundSize: 'cover',
   height: '500px',
 };
+const fetchUserInfo = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
+    const response = await fetch('http://localhost:3001/api/users/me', {
+    
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        console.error('Unauthorized: Invalid or missing token');
+      } else {
+        console.error(`Failed to fetch user info: ${response.status}`);
+      }
+      return null; // Return null if there's an error
+    } else {
+      const userData = await response.json();
+      console.log(userData);
+      return userData; // Return the fetched user data
+    }
+  } catch (error) {
+    console.error('Error fetching user info:', error);
+    return null; // Handle errors gracefully
+  } finally {
+    setLoading(false);
+  }
+};
+const handleBookClick = () => {
+  const userData = fetchUserInfo();
+  if (userData.role === 'Customer') {
+    navigate(`/bookings/${orid}`);
+  } else {
+    alert('You must be a customer to book a listing.');
+    navigate('/login');
+  }}
 const ListingDetails = () => {
   const { orid } = useParams();
   const navigate = useNavigate();
@@ -49,7 +92,7 @@ const ListingDetails = () => {
 
   const bookButton = () => (
     <button
-      onClick={() => navigate(`/bookings/${listing.orid}`)}
+      onClick={() => handleBookClick()} 
       className="w-full py-4 bg-teal-600 text-white text-2xl font-semibold rounded-lg hover:bg-teal-700 transition duration-300"
     >
       Book Now
@@ -98,10 +141,7 @@ const ListingDetails = () => {
       </div>
 
       {/* Seller Info */}
-      <div className="mb-6">
-        <p className="text-xl font-semibold text-gray-800 mb-2">Seller Info:</p>
-        <p className="text-lg text-gray-700">{listing.seller || 'No seller information available'}</p>
-      </div>
+      
 
       {/* Book Button */}
       <div className="mt-8">{listing.booked ? bookedButton() : bookButton()}</div>

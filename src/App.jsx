@@ -6,7 +6,8 @@ import BookingPage from './pages/BookingPage';
 import LoginPage from './pages/LoginPage';
 import SellerPage from './pages/SellerPage';
 import AdminPage from './pages/AdminPage';
-//import { Admin } from 'mongodb';
+import AdminLogin from './pages/adminLogin';
+
 function App() {
   return (
     <div className="min-h-screen flex flex-col">
@@ -17,7 +18,8 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<LoginPage />} />
         <Route path="/seller" element={<SellerPage />} />
-        {/*<Route path="/admin" element={<AdminPage />} />*/}
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path='/adminlog'element={<AdminLogin />}/>
       </Routes>
       <Footer />
     </div>

@@ -41,7 +41,7 @@ app.use(cors({
 
 }));
 app.use(express.json());
-app.use('/api/admin', adminRoutes);
+//app.use('/api/admin', adminRoutes);
 app.use('/api/seller', sellerRoutes);
 app.use('/api/auth', authRoutes);
 
@@ -61,7 +61,7 @@ const listingSchema = new mongoose.Schema({
   price: Number,
   booked: { type: Boolean, default: false },
   location: String,
-  seller: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Add seller reference if needed
+  seller: { type: String,  required: true }, // Add seller reference if needed
 });
 
 // Check if the Listing model is already defined
@@ -87,6 +87,16 @@ async function emitUpdatedListings() {
     console.error('Error emitting listings:', err);
   }
 }
+
+async function emitUpdatedUsers() {
+  try {
+    const users = await User.find();
+    io.emit('userUpdated', users); // Notify all connected clients
+  } catch (err) {
+    console.error('Error emitting users:', err);
+  }
+}
+
 
 // GET All Listings
 app.get('/api/listings', async (req, res) => {
@@ -169,7 +179,54 @@ app.get('/api/listings/:orid', async (req, res) => {
   }
 });
 
+app.delete('/api/admin/listings/:orid', async (req, res) => {
+  try {
+    const { orid } = req.params; // Extract 'orid' from the route
+    console.log('Deleting listing with orid:', orid);
 
+    // Delete the listing by 'orid'
+    const deletedListing = await Listing.findOneAndDelete({ orid: orid });
+
+    if (!deletedListing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    return res.status(200).json({ message: 'Listing deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting listing:', error.message);
+    res.status(500).json({ message: 'Server error occurred' });
+  }
+});
+
+app.delete('/api/admin/users/:id', async (req, res) => {
+  try { 
+    const { id } = req.params; // Extract 'id' from the route
+    console.log('Deleting user with id:', id);
+
+    // Delete the user by 'id'
+    const deletedUser = await User.findOneAndDelete({ _id: id });
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error.message);
+    res.status(500).json({ message: 'Server error occurred' });
+  }
+});
+
+app.get('/api/Users', async (req, res) => {
+  try {
+    const users = await User.find(req.body);
+    res.json(users);
+    emitUpdatedUsers(); // Emit real-time updates
+  } catch (err) {
+    console.error('Error retrieving users:', err);
+    res.status(500).json({ message: 'Error retrieving users' });
+  }
+});
 
 // POST Add a New Listing
 app.post('/api/listings', async (req, res) => {
@@ -184,6 +241,7 @@ app.post('/api/listings', async (req, res) => {
     res.status(500).json({ message: 'Error adding listing' });
   }
 });
+
 
 // WebSocket Connection for Real-Time Updates
 io.on('connection', (socket) => {

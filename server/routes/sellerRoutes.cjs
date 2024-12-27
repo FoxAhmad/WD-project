@@ -1,48 +1,51 @@
 const express = require('express');
 const { authenticateUser, authorizeRoles } = require('../middleware/authMiddleware.cjs');
-const Listing = require('../models/Listing.cjs'); // Assuming this is the Mongoose model
+const ListingService = require('../service/ListingService.cjs');
 const router = express.Router();
 
 /**
- * Get all listings for the authenticated seller.
+ * Route: GET /listings
+ * Description: Get all listings for the authenticated seller.
  */
+
+
 router.get('/listings', authenticateUser, authorizeRoles('seller'), async (req, res) => {
+  const sellerId = req.user.id;
+  
   try {
-    const sellerId = req.user.id;
-
-    // Fetch listings where the seller ID matches the authenticated user's ID
-    const listings = await Listing.getListingsBySeller( sellerId );
-
+    
+    const listings = await ListingService.getListingsBySeller(sellerId);
+      //console.log(listings);
     if (!listings.length) {
       return res.status(404).json({ message: 'No listings found for this seller.' });
     }
 
-    res.status(200).json(listings);
+    return res.status(200).json(listings);
   } catch (error) {
-    console.error(`Error fetching listings for seller ${req.user.id}:`, error);
-    res.status(500).json({ message: 'Failed to fetch listings. Please try again later.' });
+    console.error(`Error fetching listings for seller ${sellerId}:`, error);
+    return res.status(500).json({ message: 'Failed to fetch listings. Please try again later.' });
   }
 });
 
 /**
- * Delete a specific listing by ID (for sellers).
+ * Route: DELETE /listings/:id
+ * Description: Delete a specific listing by ID for the authenticated seller.
  */
 router.delete('/listings/:id', authenticateUser, authorizeRoles('seller'), async (req, res) => {
+  const { id: listingId } = req.params;
+  const sellerId = req.user.id;
+
   try {
-    const { id: listingId } = req.params;
-    const sellerId = req.user.id;
+    const deletedListing = await ListingService.deleteListingById(listingId, sellerId);
 
-    // Find and delete the listing while ensuring the seller matches
-    const listing = await Listing.findOneAndDelete({ _id: listingId, seller: sellerId });
-
-    if (!listing) {
+    if (!deletedListing) {
       return res.status(404).json({ message: 'Listing not found or unauthorized action.' });
     }
 
-    res.status(200).json({ message: 'Listing deleted successfully.' });
+    return res.status(200).json({ message: 'Listing deleted successfully.' });
   } catch (error) {
-    console.error(`Error deleting listing ID ${req.params.id} for seller ${req.user.id}:`, error);
-    res.status(500).json({ message: 'Failed to delete listing. Please try again later.' });
+    console.error(`Error deleting listing ID ${listingId} for seller ${sellerId}:`, error);
+    return res.status(500).json({ message: 'Failed to delete listing. Please try again later.' });
   }
 });
 

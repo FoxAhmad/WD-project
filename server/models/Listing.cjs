@@ -1,47 +1,22 @@
-const Listing = require('./Listing.cjs');
-// Mongoose Schema for Listings
+const mongoose = require('mongoose');
 
+const listingSchema = new mongoose.Schema({
+  image: { type: [String], default: [] },
+  orid: { type: Number, required: true, unique: true },
+  type: { type: String, required: true },
+  amenities: { type: [String], default: [] },
+  guests: { type: Number, required: true },
+  bedrooms: { type: Number, required: true },
+  bathrooms: { type: Number, required: true },
+  beds: { type: Number, required: true },
+  title: { type: String, required: true },
+  host: { type: String, required: true },
+  status: { type: String, default: 'Booking open' },
+  price: { type: Number, required: true },
+  booked: { type: Boolean, default: false },
+  location: { type: String, required: true },
+  seller: { type: String,  required: true },
+}, { timestamps: true });
 
-const getListingsBySeller = async (sellerId) => {
-  try {
-    console.log("Fetching listings for seller:", sellerId); // Debug log
-    const listings = await Listing.find({ seller: sellerId });
-    //console.log("Listing", Listing[1]); // Debug log
-    //console.log("Listings fetched successfully:", listings); // Debug log
-    return listings;
-  } catch (error) {
-    console.error(`Error fetching listings for seller ID ${sellerId}:`, error);
-    throw new Error('Failed to fetch listings. Please try again later.');
-  }
-};
-
-
-/**
- * Function to delete a specific listing by its ID.
- * Ensures that the listing belongs to the provided seller.
- * @param {string} listingId - The ID of the listing to delete.
- * @param {string} sellerId - The ID of the seller attempting to delete the listing.
- * @returns {Promise<Object>} - Returns a success message if the listing is deleted.
- * @throws {Error} - Throws an error if the listing is not found or deletion fails.
- */
-const deleteListingById = async (listingId, sellerId) => {
-  try {
-    const listing = await Listing.findOneAndDelete({ _id: listingId, seller: sellerId });
-
-    if (!listing) {
-      console.warn(`Unauthorized deletion attempt or listing not found. Listing ID: ${listingId}, Seller ID: ${sellerId}`);
-      throw new Error('Listing not found or unauthorized action.');
-    }
-
-    return { message: 'Listing deleted successfully' };
-  } catch (error) {
-    console.error(`Error deleting listing ID ${listingId} for seller ID ${sellerId}:`, error);
-    throw new Error(error.message || 'Failed to delete listing. Please try again later.');
-  }
-};
-
-module.exports = {
-  getListingsBySeller,
-  deleteListingById,
-};
-
+// Ensure the Listing model is only created once
+module.exports = mongoose.models.Listing || mongoose.model('Listing', listingSchema);

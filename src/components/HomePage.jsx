@@ -41,6 +41,7 @@ const HomePage = () => {
     <div>
       <Navbar onSearch={handleSearch} />
       <Categories />
+      
       <main className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {listings.map((listing) => (
           <ListingCard

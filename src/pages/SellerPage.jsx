@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+
+import ListingCard from '../components/ListingCard_S';
 
 const SellerPage = () => {
   const [listings, setListings] = useState([]);
@@ -22,49 +23,120 @@ const SellerPage = () => {
     location: '',
   });
 
-  const fetchListings = async () => {
+  const fetchSellerListings = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token'); 
-      const response = await axios.get('http://localhost:3001/api/seller/listings', {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3001/api/seller/listings', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setListings(response.data);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch listings');
+      }
+
+      const data = await response.json();
+      setListings(data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch listings.');
+      setError(err.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
 
-  const addListing = async () => {
-    setLoading(true);
+  const fetchUserInfo = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:3001/api/seller/listings', newListing, {
-        headers: { Authorization: `Bearer ${token}` },
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+  
+      const response = await fetch('http://localhost:3001/api/users/me', {
+      
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
-      setListings((prev) => [...prev, response.data]);
-      setIsFormOpen(false);
-      resetForm();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add listing.');
+  
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.error('Unauthorized: Invalid or missing token');
+        } else {
+          console.error(`Failed to fetch user info: ${response.status}`);
+        }
+        return null; // Return null if there's an error
+      } else {
+        const userData = await response.json();
+        console.log(userData);
+        return userData; // Return the fetched user data
+      }
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+      return null; // Handle errors gracefully
     } finally {
       setLoading(false);
     }
   };
+  const createListing = async () => {
+    try {
+      const userData = await fetchUserInfo();
+      console.log(userData.name);
+      if (!userData 
+        // || !userData.objectid
+        ) {
+        console.error("User info could not be retrieved.");
+        return;
+      }
+  
+      const listingData = {
+        ...newListing,
+        seller: "676c4b09cba6000ec02b5f29",
+        host: userData.name ,
+        orid: Date.now(), // Attach the seller ID
+      };
+  
+      console.log(listingData);
+      const response = await fetch('http://localhost:3001/api/listings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(listingData),
+      });
+  
+      if (!response.ok) {
+        console.error(`Failed to create listing: ${response.statusText}`);
+      } else {
+        console.log("Listing created successfully!");
+        setIsFormOpen(false);
+        // Optionally, refresh listings or update UI
+      }
+    } catch (error) {
+      console.error("Error creating listing:", error);
+    }
+  };
+  
 
   const deleteListing = async (id) => {
     if (!window.confirm('Are you sure you want to delete this listing?')) return;
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:3001/api/seller/listings/${id}`, {
+      const response = await fetch(`http://localhost:3001/api/seller/listings/${id}`, {
+        method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
-      setListings((prevListings) => prevListings.filter((listing) => listing._id !== id));
+
+      if (!response.ok) {
+        throw new Error('Failed to delete listing');
+      }
+
+      setListings((prev) => prev.filter((listing) => listing._id !== id));
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to delete listing.');
+      setError(err.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -72,7 +144,7 @@ const SellerPage = () => {
 
   const resetForm = () => {
     setNewListing({
-      images: [],
+      image: [],
       type: '',
       amenities: [],
       guests: 0,
@@ -89,96 +161,168 @@ const SellerPage = () => {
   };
 
   useEffect(() => {
-    fetchListings();
+    fetchSellerListings();
   }, []);
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Your Listings</h2>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
-      {loading && <p className="text-blue-500 mb-4">Loading...</p>}
+   <div className="p-6">
+  {/* Navigation */}
+  <div className="flex justify-between items-center mb-6">
+    <h2 className="text-2xl font-bold">Your Listings</h2>
+    {/* <button
+      className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition"
+      onClick={() => navigate("/")} // Assuming `navigate` is imported from `react-router-dom`
+    >
+      Home
+    </button> */}
+  </div>
 
-      <button
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
-        onClick={() => setIsFormOpen(true)}
-      >
-        Add Listing
-      </button>
+  {/* Error and Loading Messages */}
+  {error && <p className="text-red-500 mb-4">{error}</p>}
+  {loading && <p className="text-teal-500 mb-4">Loading...</p>}
 
-      {isFormOpen && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center">
-          <div className="bg-white p-6 rounded shadow-lg max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">Add New Listing</h3>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                addListing();
-              }}
-            >
-              <input
-                type="text"
-                placeholder="Title"
-                value={newListing.title}
-                onChange={(e) => setNewListing({ ...newListing, title: e.target.value })}
-                className="border p-2 mb-2 w-full"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Type"
-                value={newListing.type}
-                onChange={(e) => setNewListing({ ...newListing, type: e.target.value })}
-                className="border p-2 mb-2 w-full"
-                required
-              />
-              <input
-                type="number"
-                placeholder="Price"
-                value={newListing.price}
-                onChange={(e) => setNewListing({ ...newListing, price: Number(e.target.value) })}
-                className="border p-2 mb-2 w-full"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Location"
-                value={newListing.location}
-                onChange={(e) => setNewListing({ ...newListing, location: e.target.value })}
-                className="border p-2 mb-2 w-full"
-                required
-              />
-              <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded">
-                Submit
-              </button>
-              <button
-                type="button"
-                className="bg-red-500 text-white px-4 py-2 rounded ml-2"
-                onClick={() => setIsFormOpen(false)}
-              >
-                Cancel
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
+  {/* Add Listing Button */}
+  <button
+    className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition mb-4"
+    onClick={() => setIsFormOpen(true)}
+  >
+    Add Listing
+  </button>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {listings.map((listing) => (
-          <div key={listing._id} className="border p-4 rounded shadow">
-            <h3 className="text-lg font-bold">{listing.title}</h3>
-            <p className="text-gray-700">Type: {listing.type}</p>
-            <p className="text-gray-700">Price: ${listing.price}</p>
-            <p className="text-gray-500">Location: {listing.location}</p>
+  {/* Form Modal */}
+  {isFormOpen && (
+    <div className="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center">
+      <div className="bg-white p-6 rounded shadow-lg max-w-md w-full">
+        <h3 className="text-xl font-bold mb-4">Add New Listing</h3>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            await createListing();
+          }}
+        >
+          {/* Form Inputs */}
+          <input
+            type="text"
+            placeholder="Title"
+            value={newListing.title}
+            onChange={(e) => setNewListing({ ...newListing, title: e.target.value })}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Type (e.g., Apartment, House)"
+            value={newListing.type}
+            onChange={(e) => setNewListing({ ...newListing, type: e.target.value })}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Price"
+            value={newListing.price}
+            onChange={(e) => setNewListing({ ...newListing, price: Number(e.target.value) })}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Location"
+            value={newListing.location}
+            onChange={(e) => setNewListing({ ...newListing, location: e.target.value })}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Number of Guests"
+            value={newListing.guests}
+            onChange={(e) => setNewListing({ ...newListing, guests: Number(e.target.value) })}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Number of Bedrooms"
+            value={newListing.bedrooms}
+            onChange={(e) => setNewListing({ ...newListing, bedrooms: Number(e.target.value) })}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Number of Bathrooms"
+            value={newListing.bathrooms}
+            onChange={(e) => setNewListing({ ...newListing, bathrooms: Number(e.target.value) })}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="number"
+            placeholder="Number of Beds"
+            value={newListing.beds}
+            onChange={(e) => setNewListing({ ...newListing, beds: Number(e.target.value) })}
+            className="border p-2 mb-2 w-full rounded"
+            required
+          />
+          <input
+            type="text"
+            placeholder="Amenities (comma-separated)"
+            value={newListing.amenities}
+            onChange={(e) => setNewListing({ ...newListing, amenities: e.target.value.split(',') })}
+            className="border p-2 mb-2 w-full rounded"
+          />
+          <input
+            type="text"
+            placeholder="Image URLs (comma-separated)"
+            value={newListing.image}
+            onChange={(e) => setNewListing({ ...newListing, images: e.target.value.split(',') })}
+            className="border p-2 mb-2 w-full rounded"
+          />
+
+          {/* Buttons */}
+          <div className="flex justify-between">
+            <button type="submit" className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700 transition">
+              Submit
+            </button>
             <button
-              className="bg-red-500 text-white px-2 py-1 rounded mt-2"
-              onClick={() => deleteListing(listing._id)}
+              type="button"
+              className="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500 transition"
+              onClick={() => setIsFormOpen(false)}
             >
-              Delete
+              Cancel
             </button>
           </div>
-        ))}
+        </form>
       </div>
     </div>
+  )}
+
+  {/* Listings Grid */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {listings.map((listing) => (
+      <div key={listing._id} className="border p-4 rounded shadow bg-white hover:shadow-lg transition">
+         <ListingCard
+            key={listing.orid}
+            orid={listing.orid}
+            image={listing.image}
+            title={listing.title}
+            host={listing.host}
+            status={listing.status}
+            price={listing.price}
+            location={listing.location}
+          />
+        <button
+          className="bg-teal-600 text-white px-2 py-1 rounded mt-2 hover:bg-teal-700 transition"
+          onClick={() => deleteListing(listing._id)}
+        >
+          Delete
+        </button>
+      </div>
+    ))}
+  </div>
+</div>
+
   );
 };
 
