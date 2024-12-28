@@ -11,6 +11,7 @@ const sellerRoutes = require('./routes/sellerRoutes.cjs');
 const authRoutes = require('./routes/authRoutes.cjs'); // Optional for login
 const jwt = require('jsonwebtoken'); // For verifying tokens
 const User = require('./models/User.cjs');
+const Booking = require('./models/Booking.cjs')
 //const { verifyToken } = require('./middleware/authMiddleware.cjs'); 
 const { authenticateUser, authorizeRoles } = require('./middleware/authMiddleware.cjs');
 //const Listing = require('./models/Listing.cjs'); // Assuming a Mongoose model for listings
@@ -24,7 +25,7 @@ const io = new Server(server, {
   cors: {
    
       origin: 'http://localhost:5173', // Match frontend origin
-      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
       allowedHeaders: ['Content-Type', 'Authorization'], // Include Authorization for token
       credentials: true,
   },
@@ -35,7 +36,7 @@ const io = new Server(server, {
 // Middleware
 app.use(cors({
   origin: 'http://localhost:5173',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 
@@ -97,6 +98,15 @@ async function emitUpdatedUsers() {
   }
 }
 
+async function emitUpdatedBookings() {
+  try {
+    const bookings = await Booking.find();
+    io.emit('bookingUpdated', bookings); // Notify all connected clients
+  } catch (err) {
+    console.error('Error emitting bookings:', err);
+ }
+}
+
 
 // GET All Listings
 app.get('/api/listings', async (req, res) => {
@@ -138,7 +148,7 @@ app.get('/api/users/me', async (req, res) => {
     const decoded = jwt.verify(token, '17301');
     //console.log(decoded);
     const userId = decoded.id; // Assuming the token contains the user's ID
-
+    //console.log(userId)
     // Fetch the user from MongoDB
     const user = await User.findById(userId).select('-password'); 
     // Exclude the password field
@@ -147,6 +157,7 @@ app.get('/api/users/me', async (req, res) => {
     }
 
     res.json({
+      id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
@@ -228,6 +239,150 @@ app.get('/api/Users', async (req, res) => {
   }
 });
 
+app.post('/api/bookings', async (req, res) => {
+  try {
+    const newBooking = new Booking(req.body);
+    await newBooking.save();
+    await emitUpdatedBookings(); // Emit real-time updates
+    res.status(201).json({ message: 'Booking added successfully' });
+  } catch (err) {
+    console.error('Error adding booking:', err);
+    res.status(500).json({ message: 'Error adding booking' });
+  }
+});
+app.get('/api/bookings', async(req, res) => {
+
+  try {
+    const bookings = await Booking.find(req.body);
+    res.json(bookings);
+    emitUpdatedBookings(); // Emit real-time updates
+  } catch (err) {
+    console.error('Error retrieving bookings:', err);
+    res.status(500).json({ message: 'Error retrieving bookings' });
+  }
+
+});
+
+//get bookings by user id
+app.get('/api/bookings/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const bookings = await Booking.find({ user: id });
+    res.json(bookings);
+  } catch (err) {
+    console.error('Error retrieving bookings:', err);
+    res.status(500).json({ message: 'Error retrieving bookings' });
+  }
+});
+app.put('/api/bookings/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedBooking = await Booking.findOneAndUpdate({ _id: id }, req.body, { new: true });
+    if (!updatedBooking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    await emitUpdatedBookings(); // Emit real-time updates
+    res.json(updatedBooking);
+  } catch (error) {
+    console.error('Error updating booking:', error);
+    res.status(500).json({ message: 'Server error occurred' });
+  }
+});
+app.delete('/api/bookings/:id', async (req, res) => { 
+  try {
+    const { id } = req.params;
+    const deletedBooking = await Booking.findOneAndDelete({ _id: id });
+    if (!deletedBooking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+    await emitUpdatedBookings(); // Emit real-time updates
+    res.json({ message: 'Booking deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting booking:', error);
+    res.status(500).json({ message: 'Server error occurred' });
+  }
+});
+
+app.put('/api/listings/:orid', async (req, res) => {
+  try {
+    const { orid } = req.params;
+    const updatedListing = await Listing.findOneAndUpdate({ orid: orid }, req.body, { new: true });
+    if (!updatedListing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+    await emitUpdatedListings(); // Emit real-time updates
+    res.json(updatedListing);
+  } catch (error) {
+    console.error('Error updating listing:', error);
+    res.status(500).json({ message: 'Server error occurred' });
+  }
+});
+app.patch('/api/listings/id/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedData = req.body;
+    const listing = await Listing.findByIdAndUpdate(id, updatedData, { new: true });
+    if (listing) {
+      res.status(200).json(listing);
+    } else {
+      res.status(404).json({ message: 'Listing not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating listing', error });
+  }
+});
+app.put('/api/listings/:id/update-booking', async (req, res) => {
+  const { status } = req.body;
+  try {
+    const listing = await Listing.findById(req.params.id);
+    if (!listing) return res.status(404).json({ message: 'Listing not found' });
+    listing.status = status;
+    listing.booked = status === 'Booking closed';
+    await listing.save();
+    res.json(listing);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update booking status' });
+  }
+});
+//http://localhost:3001/api/bookings/seller
+app.get('/api/bookings/sellerId', async (req, res) => {
+  try {
+    const sellerId = req.user.id;
+    console.log(sellerId); // Extract seller ID from authenticated user
+    const bookings = await Booking.find({ seller: sellerId });
+    console.log(bookings); // Query bookings by seller ID
+    res.status(200).json(bookings); // Send bookings data as a JSON response
+  } catch (err) {
+    console.error('Error retrieving bookings:', err.message); // Log error with detailed message
+    res.status(500).json({ message: 'Error retrieving bookings' }); // Send appropriate error response
+  }
+});
+
+
+
+app.put('/api/bookings/:id/update-status', async (req, res) => {
+  const { status } = req.body;
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+    booking.status = status;
+
+    // Update associated listing's booking status
+    const listing = await Listing.findById(booking.listingId);
+    if (listing) {
+      listing.status = status === 'Approved' ? 'Booking closed' : listing.status;
+      listing.booked = status === 'Approved';
+      await listing.save();
+    }
+
+    await booking.save();
+    res.json({ booking, listing });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to update booking status' });
+  }
+});
+
 // POST Add a New Listing
 app.post('/api/listings', async (req, res) => {
   try {
@@ -240,6 +395,21 @@ app.post('/api/listings', async (req, res) => {
     console.error('Error adding listing:', err);
     res.status(500).json({ message: 'Error adding listing' });
   }
+});
+
+app.get('/api/listings/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const listing = await Listing.findById(id);
+    if (!listing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+    res.json(listing);
+  } catch (error) {
+    console.error('Error fetching listing:', error);
+    res.status(500).json({ message: 'Server error occurred' });
+  }
+  
 });
 
 

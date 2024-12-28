@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { Slide } from 'react-slideshow-image';
 import 'react-slideshow-image/dist/styles.css';
-import React from 'react';
+import {React , useState , useEffect} from 'react';
 
 const divStyle = {
   display: 'flex',
@@ -10,58 +10,91 @@ const divStyle = {
   backgroundSize: 'cover',
   height: '250px',
 };
-const fetchUserInfo = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setLoading(false);
-      return;
-    }
 
-    const response = await fetch('http://localhost:3001/api/users/me', {
-    
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error('Unauthorized: Invalid or missing token');
-      } else {
-        console.error(`Failed to fetch user info: ${response.status}`);
-      }
-      return null; // Return null if there's an error
-    } else {
-      const userData = await response.json();
-      console.log(userData);
-      return userData; // Return the fetched user data
-    }
-  } catch (error) {
-    console.error('Error fetching user info:', error);
-    return null; // Handle errors gracefully
-  } finally {
-    setLoading(false);
-  }
-};
-const ListingCard = ({ orid, image, title, host, status, price, location }) => {
+const ListingCard = ({ orid, images, title, host, status, price, location }) => {
   const navigate = useNavigate();
-
+  const [user, setUser] = useState(null);
+  useEffect (() => {
+  const fetchUserInfo = async () => {
+   
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        //setLoading(false);
+        return;
+      }
+  
+      const response = await fetch('http://localhost:3001/api/users/me', {
+      
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      if (!response.ok) {
+        if (response.status === 401) {
+          console.error('Unauthorized: Invalid or missing token');
+        } else {
+          console.error(`Failed to fetch user info: ${response.status}`);
+        }
+        return null; // Return null if there's an error
+      } else {
+        const userData = await response.json();
+        //console.log(userData);
+        setUser(userData); // Return the fetched user data
+      }
+    } catch (error) {
+      console.error('Error fetching user info:', error);
+      return null; // Handle errors gracefully
+    } finally {
+      //setLoading(false);
+    }
+  };
+  fetchUserInfo();
+  }, []);
   const handleCardClick = () => {
     navigate(`/listings/${orid}`);
   };
 
   const handleBookClick = (e) => {
     e.stopPropagation();
-  const userData = fetchUserInfo();
-  if(userData.role === 'Customer'){
+  //const userData = fetchUserInfo();
+ 
+  //console.log(user)
+ if(user != null)
+ {
+  if(user.role === 'customer' ){
     navigate(`/bookings/${orid}`);}
-   else {
+else {
      alert('You must be a customer to book a listing.');
      navigate('/login');
-   } 
+   }
+  }
+  else{
+    alert('You must be logged in as customer to book a listing.');
+    navigate('/login');
+  } 
+  };
+
+  const bookingbutton = () => {
+   
+    if(status === 'Booking closed'){
+    return(<button
+      
+      className="mt-2 p-2 bg-red-500 text-white rounded-lg"
+    >
+      Booked
+    </button>)
+    }
+    else{
+    return(<button
+      onClick={handleBookClick}
+      className="mt-2 p-2 bg-teal-500 text-white rounded-lg"
+    >
+      Book Me
+    </button>)}
   };
   
   return (
@@ -71,7 +104,7 @@ const ListingCard = ({ orid, image, title, host, status, price, location }) => {
     >
       <div className="slide-container" onClick={(e) => e.stopPropagation()}>
         <Slide>
-          {image.map((slideImage, index) => (
+          {images.map((slideImage, index) => (
             <div key={index}>
               <div style={{ ...divStyle, backgroundImage: `url(${slideImage})` }}></div>
             </div>
@@ -84,12 +117,9 @@ const ListingCard = ({ orid, image, title, host, status, price, location }) => {
       <p className="text-sm text-gray-500">{location}</p>
       <p className="text-lg font-bold">${price} /day</p>
       
-      <button
-        onClick={handleBookClick}
-        className="mt-2 p-2 bg-teal-500 text-white rounded-lg"
-      >
-        Book Me
-      </button>
+     
+      {bookingbutton()}
+      
     </div>
   );
 };

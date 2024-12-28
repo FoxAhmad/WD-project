@@ -11,7 +11,7 @@ const divStyle = {
   height: '250px',
 };
 
-const ListingCard_S = ({ orid, image, title, host, status, price, location }) => {
+const ListingCard_S = ({ orid, images, title, host, status, price, location }) => {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
@@ -30,7 +30,7 @@ const ListingCard_S = ({ orid, image, title, host, status, price, location }) =>
     >
       <div className="slide-container" onClick={(e) => e.stopPropagation()}>
         <Slide>
-          {image.map((slideImage, index) => (
+          {images.map((slideImage, index) => (
             <div key={index}>
               <div style={{ ...divStyle, backgroundImage: `url(${slideImage})` }}></div>
             </div>

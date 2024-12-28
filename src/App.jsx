@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import SellerPage from './pages/SellerPage';
 import AdminPage from './pages/AdminPage';
 import AdminLogin from './pages/adminLogin';
+import CustomerProfile from './pages/CustomerProfile';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/seller" element={<SellerPage />} />
         <Route path="/admin" element={<AdminPage />} />
         <Route path='/adminlog'element={<AdminLogin />}/>
+        <Route path="/profile" element={<CustomerProfile />} />
       </Routes>
       <Footer />
     </div>

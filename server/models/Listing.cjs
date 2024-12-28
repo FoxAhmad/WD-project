@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const listingSchema = new mongoose.Schema({
-  image: { type: [String], default: [] },
+  images: { type: [String], default: [] },
   orid: { type: Number, required: true, unique: true },
   type: { type: String, required: true },
   amenities: { type: [String], default: [] },

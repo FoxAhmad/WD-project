@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Slide } from 'react-slideshow-image';
 import 'react-slideshow-image/dist/styles.css';
-
+import Navbar from '../components/Navbar_CP';
 const divStyle = {
   display: 'flex',
   alignItems: 'center',
@@ -10,56 +10,61 @@ const divStyle = {
   backgroundSize: 'cover',
   height: '500px',
 };
-const fetchUserInfo = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setLoading(false);
-      return;
-    }
 
-    const response = await fetch('http://localhost:3001/api/users/me', {
-    
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        console.error('Unauthorized: Invalid or missing token');
-      } else {
-        console.error(`Failed to fetch user info: ${response.status}`);
-      }
-      return null; // Return null if there's an error
-    } else {
-      const userData = await response.json();
-      console.log(userData);
-      return userData; // Return the fetched user data
-    }
-  } catch (error) {
-    console.error('Error fetching user info:', error);
-    return null; // Handle errors gracefully
-  } finally {
-    setLoading(false);
-  }
-};
-const handleBookClick = () => {
-  const userData = fetchUserInfo();
-  if (userData.role === 'Customer') {
-    navigate(`/bookings/${orid}`);
-  } else {
-    alert('You must be a customer to book a listing.');
-    navigate('/login');
-  }}
 const ListingDetails = () => {
   const { orid } = useParams();
   const navigate = useNavigate();
   const [listing, setListing] = useState(null);
   const [error, setError] = useState(null);
-
+  const [user, setUser] = useState(null);
+    useEffect (() => {
+    const fetchUserInfo = async () => {
+     
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          //setLoading(false);
+          return;
+        }
+    
+        const response = await fetch('http://localhost:3001/api/users/me', {
+        
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+    
+        if (!response.ok) {
+          if (response.status === 401) {
+            console.error('Unauthorized: Invalid or missing token');
+          } else {
+            console.error(`Failed to fetch user info: ${response.status}`);
+          }
+          return null; // Return null if there's an error
+        } else {
+          const userData = await response.json();
+          //console.log(userData);
+          setUser(userData); // Return the fetched user data
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+        return null; // Handle errors gracefully
+      } finally {
+        //setLoading(false);
+      }
+    };
+    fetchUserInfo();
+    }, []);
+    const handleBookClick = () => {
+      //const userData = fetchUserInfo();
+      if (user.role === 'Customer') {
+        navigate(`/bookings/${orid}`);
+      } else {
+        alert('You must be a customer to book a listing.');
+       // navigate('/login');
+      }}
   useEffect(() => {
     if (!orid) {
       setError('Invalid listing ORID');
@@ -100,11 +105,13 @@ const ListingDetails = () => {
   );
 
   return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar  />
     <div className="max-w-4xl mx-auto p-8 bg-white shadow-xl rounded-lg">
       {/* Image Slider */}
       <div className="slide-container">
         <Slide>
-          {listing.image.map((slideImage, index) => (
+          {listing.images.map((slideImage, index) => (
             <div key={index}>
               <div style={{ ...divStyle, backgroundImage: `url(${slideImage})` }} />
             </div>
@@ -145,6 +152,7 @@ const ListingDetails = () => {
 
       {/* Book Button */}
       <div className="mt-8">{listing.booked ? bookedButton() : bookButton()}</div>
+    </div>
     </div>
   );
 };

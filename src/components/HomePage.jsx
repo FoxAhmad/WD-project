@@ -9,6 +9,7 @@ const socket = io('http://localhost:3001');
 const HomePage = () => {
   const [listings, setListings] = useState([]);
   const [searchActive, setSearchActive] = useState(false);
+  
 
   useEffect(() => {
     if (searchActive) return;
@@ -47,7 +48,7 @@ const HomePage = () => {
           <ListingCard
             key={listing.orid}
             orid={listing.orid}
-            image={listing.image}
+            images={listing.images}
             title={listing.title}
             host={listing.host}
             status={listing.status}
