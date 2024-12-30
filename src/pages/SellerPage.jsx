@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import ListingCard from '../components/ListingCard_S';
-
+import Navbar from '../components/Navbar_CP';
 const SellerPage = () => {
   const [listings, setListings] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -27,12 +27,14 @@ const SellerPage = () => {
       location: '',
     };
   }
+   
 
   const fetchSellerListings = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:3001/api/seller/listings', {
+        // Pass the token in the Authorization header
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -41,13 +43,18 @@ const SellerPage = () => {
       }
 
       const data = await response.json();
+      // Update the listings state with the fetched data
       setListings(data);
     } catch (err) {
+      // Handle errors gracefully and display an error message
       setError(err.message || 'An error occurred');
     } finally {
+      // Set loading to false after the request is complete
       setLoading(false);
     }
   };
+  
+
 
   const fetchBookingsForSeller = async () => {
     setLoading(true);
@@ -62,7 +69,7 @@ const SellerPage = () => {
       }
 
       const data = await response.json();
-      console.log(data);
+      //console.log(data);
       setBookings(data);
     } catch (err) {
       setError(err.message || 'An error occurred');
@@ -70,7 +77,7 @@ const SellerPage = () => {
       setLoading(false);
     }
   };
-
+  
   const approveBooking = async (bookingId, listingId) => {
     try {
       const response = await fetch(`http://localhost:3001/api/bookings/${bookingId}/update-status`, {
@@ -85,19 +92,21 @@ const SellerPage = () => {
         throw new Error('Failed to approve booking');
       }
 
-      const { updatedBooking, updatedListing } = await response.json();
+      
 
-      setBookings((prev) =>
-        prev.map((booking) =>
-          booking._id === updatedBooking._id ? updatedBooking : booking
-        )
-      );
+      //fetchSellerBookings();
 
-      setListings((prev) =>
-        prev.map((listing) =>
-          listing._id === updatedListing._id ? updatedListing : listing
-        )
-      );
+      const updateListingResponse = await fetch(
+          `http://localhost:3001/api/listings/id/${listingId}`,
+          {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ booked: true  , status: 'Booking closed' }),
+          }
+        );
+        updateListingResponse.json();
+        alert('Booking approved successfully!');
+
     } catch (err) {
       setError(err.message || 'An error occurred');
     }
@@ -115,6 +124,7 @@ const SellerPage = () => {
 
   return (
     <div className="p-6">
+      <Navbar />
       <header className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Your Listings</h2>
         <button
@@ -172,7 +182,7 @@ const SellerPage = () => {
               key={booking._id}
               booking={booking}
               listing={listing}
-              onApprove={() => approveBooking(booking._id, booking.listingId)}
+              onApprove={() => approveBooking(booking._id, booking.listing)}
             />
           );
         })}
@@ -248,14 +258,14 @@ const ListingItem = ({ listing, onEdit, onDelete }) => (
 const BookingItem = ({ booking, listing, onApprove }) => (
   <div className="border p-4 rounded shadow bg-white hover:shadow-lg transition">
     {listing && <ListingCard {...listing} />}
-    <p className="mt-2 text-gray-700">
+    <div className="mt-2 text-gray-700">
       <strong>Booking Details:</strong> 
       <p><strong>Listing:</strong> {booking.title}</p>
                 <p><strong>Check-In:</strong> {new Date(booking.CheckIn).toLocaleDateString()}</p>
                 <p><strong>Check-Out:</strong> {new Date(booking.CheckOut).toLocaleDateString()}</p>
                 <p><strong>Total Price:</strong> ${booking.totalPrice}</p>
                 <p><strong>Status:</strong> {booking.status}</p>
-    </p>
+    </div>
     <button
       className="bg-green-600 text-white px-4 py-2 rounded mt-2 hover:bg-green-700 transition"
       onClick={onApprove}

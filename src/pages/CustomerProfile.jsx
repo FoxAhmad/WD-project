@@ -66,7 +66,7 @@ const CustomerProfile = () => {
       });
 
       // Update listing's booked status
-      await fetch(`http://localhost:3001/api/listings/${listingId}`, {
+      await fetch(`http://localhost:3001/api/listings/id/${listingId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -120,101 +120,141 @@ const CustomerProfile = () => {
 
   return (
     <div>
-      <Navbar />
-      <div className="container mx-auto my-8">
-        <h1 className="text-3xl font-bold text-center mb-6">Customer Profile</h1>
-
-        {/* Display User Information */}
-        {user ? (
-          <div className="bg-white p-6 rounded shadow-md">
-            <h2 className="text-2xl font-semibold mb-4">Profile Details</h2>
-            <p>
-              <strong>Name:</strong> {user.name}
-            </p>
-            <p>
-              <strong>Email:</strong> {user.email}
-            </p>
-            
-          </div>
+    <Navbar />
+    <div className="container mx-auto my-8 px-4">
+      <h1 className="text-4xl font-extrabold text-center text-teal-600 mb-10">
+        Customer Profile
+      </h1>
+  
+      {/* Display User Information */}
+      {user ? (
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+            Profile Details
+          </h2>
+          <p className="mb-2 text-gray-700">
+            <strong>Name:</strong> {user.name}
+          </p>
+          <p className="text-gray-700">
+            <strong>Email:</strong> {user.email}
+          </p>
+        </div>
+      ) : (
+        <p className="text-center text-gray-500">Loading user information...</p>
+      )}
+  
+      {/* Display Booking Information */}
+      <div className="bg-white p-6 rounded-lg shadow-lg mt-10">
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+          Your Bookings
+        </h2>
+        {bookings.length > 0 ? (
+          bookings.map((booking) => (
+            <div
+              key={booking._id}
+              className="border-b border-gray-200 pb-4 mb-4"
+            >
+              <p className="text-gray-700">
+                <strong>Listing:</strong> {booking.title}
+              </p>
+              <p className="text-gray-700">
+                <strong>Check-In:</strong>{" "}
+                {new Date(booking.CheckIn).toLocaleDateString()}
+              </p>
+              <p className="text-gray-700">
+                <strong>Check-Out:</strong>{" "}
+                {new Date(booking.CheckOut).toLocaleDateString()}
+              </p>
+              <p className="text-gray-700">
+                <strong>Total Price:</strong> ${booking.totalPrice}
+              </p>
+              <p className="text-gray-700">
+                <strong>Status:</strong>{" "}
+                <span
+                  className={`px-2 py-1 rounded ${
+                    booking.status === "Confirmed"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {booking.status}
+                </span>
+              </p>
+              <div className="flex gap-4 mt-6">
+                <button
+                  onClick={() => handleCancelBooking(booking._id, booking.listing)}
+                  className="bg-red-600 text-white px-4 py-2 rounded shadow hover:bg-red-700 transition duration-300"
+                >
+                  Cancel Booking
+                </button>
+                <button
+                  onClick={() => setEditingBooking(booking)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition duration-300"
+                >
+                  Edit Booking
+                </button>
+              </div>
+            </div>
+          ))
         ) : (
-          <p>Loading user information...</p>
+          <p className="text-center text-gray-500">No bookings found.</p>
         )}
-
-        {/* Display Booking Information */}
-        <div className="bg-white p-6 rounded shadow-md mt-8">
-          <h2 className="text-2xl font-semibold mb-4">Your Bookings</h2>
-          {bookings.length > 0 ? (
-            bookings.map((booking) => (
-              <div key={booking._id} className="border-b-2 border-gray-200 pb-4 mb-4">
-                <p><strong>Listing:</strong> {booking.title}</p>
-                <p><strong>Check-In:</strong> {new Date(booking.CheckIn).toLocaleDateString()}</p>
-                <p><strong>Check-Out:</strong> {new Date(booking.CheckOut).toLocaleDateString()}</p>
-                <p><strong>Total Price:</strong> ${booking.totalPrice}</p>
-                <p><strong>Status:</strong> {booking.status}</p>
-                <div className="flex gap-4 mt-4">
-                  <button
-                    onClick={() => handleCancelBooking(booking._id, booking.listing)}
-                    className="bg-red-600 text-white px-4 py-2 rounded"
-                  >
-                    Cancel Booking
-                  </button>
-                  <button
-                    onClick={() => setEditingBooking(booking)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded"
-                  >
-                    Edit Booking
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p>No bookings found.</p>
-          )}
-
-          {/* Edit Booking Form */}
-          {editingBooking && (
-            <div className="mt-8 bg-gray-100 p-6 rounded shadow-md">
-              <h3 className="text-xl font-bold mb-4">Edit Booking</h3>
-              <div>
-                <label>Check-In:</label>
-                <input
-                  type="date"
-                  value={editingBooking.CheckIn}
-                  onChange={(e) =>
-                    setEditingBooking({ ...editingBooking, CheckIn: e.target.value })
-                  }
-                  className="border p-2 rounded w-full mb-4"
-                />
-              </div>
-              <div>
-                <label>Check-Out:</label>
-                <input
-                  type="date"
-                  value={editingBooking.CheckOut}
-                  onChange={(e) =>
-                    setEditingBooking({ ...editingBooking, CheckOut: e.target.value })
-                  }
-                  className="border p-2 rounded w-full mb-4"
-                />
-              </div>
+  
+        {/* Edit Booking Form */}
+        {editingBooking && (
+          <div className="mt-8 bg-gray-50 p-6 rounded-lg shadow-md">
+            <h3 className="text-xl font-bold mb-4 text-gray-800">
+              Edit Booking
+            </h3>
+            <div className="mb-4">
+              <label className="block text-gray-700 font-medium mb-1">
+                Check-In:
+              </label>
+              <input
+                type="date"
+                value={editingBooking.CheckIn}
+                onChange={(e) =>
+                  setEditingBooking({ ...editingBooking, CheckIn: e.target.value })
+                }
+                className="border border-gray-300 rounded px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-teal-400"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-gray-700 font-medium mb-1">
+                Check-Out:
+              </label>
+              <input
+                type="date"
+                value={editingBooking.CheckOut}
+                onChange={(e) =>
+                  setEditingBooking({
+                    ...editingBooking,
+                    CheckOut: e.target.value,
+                  })
+                }
+                className="border border-gray-300 rounded px-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-teal-400"
+              />
+            </div>
+            <div className="flex gap-4">
               <button
                 onClick={handleEditBooking}
-                className="bg-teal-600 text-white px-4 py-2 rounded"
+                className="bg-teal-600 text-white px-4 py-2 rounded shadow hover:bg-teal-700 transition duration-300"
               >
                 Save Changes
               </button>
               <button
                 onClick={() => setEditingBooking(null)}
-                className="bg-gray-400 text-white px-4 py-2 rounded ml-4"
+                className="bg-gray-400 text-white px-4 py-2 rounded shadow hover:bg-gray-500 transition duration-300"
               >
                 Cancel
               </button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-     
     </div>
+  </div>
+  
   );
 };
 

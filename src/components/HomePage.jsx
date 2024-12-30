@@ -9,7 +9,7 @@ const socket = io('http://localhost:3001');
 const HomePage = () => {
   const [listings, setListings] = useState([]);
   const [searchActive, setSearchActive] = useState(false);
-  
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   useEffect(() => {
     if (searchActive) return;
@@ -38,13 +38,24 @@ const HomePage = () => {
     setSearchActive(true);
   };
 
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setSearchActive(false); // Reset search when filtering by category
+  };
+
+  const filteredListings = selectedCategory
+    ? listings.filter((listing) =>
+        listing.amenities.includes(selectedCategory)
+      )
+    : listings;
+
   return (
     <div>
       <Navbar onSearch={handleSearch} />
-      <Categories />
-      
+      <Categories onCategorySelect={handleCategorySelect} />
+
       <main className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {listings.map((listing) => (
+        {filteredListings.map((listing) => (
           <ListingCard
             key={listing.orid}
             orid={listing.orid}

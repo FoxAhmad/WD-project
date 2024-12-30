@@ -20,7 +20,7 @@ function App() {
         <Route path="/signup" element={<LoginPage />} />
         <Route path="/seller" element={<SellerPage />} />
         <Route path="/admin" element={<AdminPage />} />
-        <Route path='/adminlog'element={<AdminLogin />}/>
+        <Route path="/adminlog" element={<AdminLogin />} />
         <Route path="/profile" element={<CustomerProfile />} />
       </Routes>
       <Footer />
@@ -29,3 +29,5 @@ function App() {
 }
 
 export default App;
+
+
